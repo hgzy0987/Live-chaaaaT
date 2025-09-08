@@ -1,12 +1,15 @@
 import os
 import logging
-from flask import Flask
-from threading import Thread
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, db
+
+# Keep Alive import
+from keep_alive import keep_alive
+from threading import Thread
+from flask import Flask
 
 # ---------------- Load Environment -----------------
 load_dotenv()
@@ -88,23 +91,10 @@ async def admin_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("মেসেজ ইউজারকে পাঠানো হয়েছে।")
         del admin_reply_targets[admin_id]
 
-# ---------------- Keep Alive Flask -----------------
-flask_app = Flask("")
-
-@flask_app.route("/")
-def home():
-    return "Bot is running!"
-
-def run():
-    flask_app.run(host="0.0.0.0", port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
+# ---------------- Keep Alive -----------------
+keep_alive()  # Flask server শুরু হবে, Uptime Robot / Render এর জন্য
 
 # ---------------- Main -----------------
-keep_alive()
-
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button, pattern="^(yes|no)$"))
